@@ -3,10 +3,10 @@ module github.com/cognusion/go-racket
 go 1.24.4
 
 require (
-	github.com/cognusion/semaphore v1.3.2
+	github.com/cognusion/semaphore v1.3.3
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/smartystreets/goconvey v1.8.1
-	github.com/spf13/cast v1.9.2
+	github.com/spf13/cast v1.10.0
 )
 
 require (
