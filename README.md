@@ -111,7 +111,7 @@ ProgressBar-related Progress will be sent to the barChan as-is.
 
 
 
-## <a name="Job">type</a> [Job](https://github.com/cognusion/go-racket/tree/master/job.go?s=1251:2032#L27)
+## <a name="Job">type</a> [Job](https://github.com/cognusion/go-racket/tree/master/job.go?s=1266:2047#L28)
 ``` go
 type Job interface {
     // Supervisor will ensure there are workers to do the Work, and a channel to receive that Work on,
@@ -137,7 +137,7 @@ send Progress along as-needed.
 
 
 
-### <a name="NewJob">func</a> [NewJob](https://github.com/cognusion/go-racket/tree/master/job.go?s=2685:2723#L57)
+### <a name="NewJob">func</a> [NewJob](https://github.com/cognusion/go-racket/tree/master/job.go?s=2727:2765#L59)
 ``` go
 func NewJob(workerFunc WorkerFunc) Job
 ```
@@ -328,7 +328,7 @@ GetString returns the string-ified value associated with the key.
 
 
 
-## <a name="WorkerFunc">type</a> [WorkerFunc](https://github.com/cognusion/go-racket/tree/master/job.go?s=2251:2320#L44)
+## <a name="WorkerFunc">type</a> [WorkerFunc](https://github.com/cognusion/go-racket/tree/master/job.go?s=2266:2335#L45)
 ``` go
 type WorkerFunc func(id any, work Work, progressChan chan<- Progress)
 ```

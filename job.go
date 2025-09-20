@@ -16,6 +16,7 @@
 package racket
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/cognusion/semaphore"
@@ -48,6 +49,7 @@ type WorkerFunc func(id any, work Work, progressChan chan<- Progress)
 type defaultJob struct {
 	workerFunc   WorkerFunc
 	workChan     chan Work
+	workerCount  atomic.Int64
 	progressChan chan Progress
 	doneChan     chan struct{}
 	lock         semaphore.Semaphore
@@ -65,6 +67,7 @@ func NewJob(workerFunc WorkerFunc) Job {
 // no more to do.
 func (j *defaultJob) NewWorker(id any) {
 	defer j.lock.Unlock()
+	defer j.workerCount.Add(-1)
 
 	select {
 	case w := <-j.workChan:
@@ -73,9 +76,31 @@ func (j *defaultJob) NewWorker(id any) {
 	}
 }
 
-// IsDone waits until all of the workers have completed.
+// IsDone waits until all of the workers have completed, kind of.
+// After done() has been called, if there are zero workers 4 consecutive 10ms polls,
+// we assume we are done.
 func (j *defaultJob) IsDone() <-chan bool {
-	return j.lock.IsFree(100 * time.Millisecond)
+	b := make(chan bool)
+
+	go func() {
+		var count int
+		<-j.doneChan // if doneChan isn't closed, we are definitely not done
+
+		for {
+			if j.workerCount.Load() > 0 {
+				count = 0
+			} else {
+				count++
+			}
+			if count > 4 {
+				break
+			}
+			<-time.After(10 * time.Millisecond)
+		}
+		b <- true
+	}()
+
+	return b
 }
 
 // Supervisor spins up maxWorkers, who will wait for Work via workChan, and returns a channel for
@@ -93,6 +118,7 @@ func (j *defaultJob) Supervisor(maxWorkers int, workChan chan Work) (progressCha
 			select {
 			case <-j.lock.Until():
 				// woo! make a worker!
+				j.workerCount.Add(1)
 				go j.NewWorker(c)
 			case <-j.doneChan:
 				// That's all folks!
